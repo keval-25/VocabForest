@@ -104,14 +104,9 @@ function ensureLocalFileExists(): void {
 }
 
 export async function getWords(): Promise<WordItem[]> {
-  // If memory cache exists, prioritize
-  if (memoryWordsCache && memoryWordsCache.length > 0) {
-    return memoryWordsCache;
-  }
-
   ensureLocalFileExists();
 
-  // Try reading from project data file
+  // Try reading fresh from project data file on disk first
   if (fs.existsSync(DATA_FILE)) {
     try {
       const content = await fs.promises.readFile(DATA_FILE, 'utf-8');
@@ -121,8 +116,13 @@ export async function getWords(): Promise<WordItem[]> {
         return parsed;
       }
     } catch (err) {
-      console.warn('Failed reading DATA_FILE, attempting fallback:', err);
+      console.warn('Failed reading DATA_FILE, attempting memory fallback:', err);
     }
+  }
+
+  // If memory cache exists (useful in serverless), use it
+  if (memoryWordsCache && memoryWordsCache.length > 0) {
+    return memoryWordsCache;
   }
 
   // Try /tmp fallback for serverless deployments
