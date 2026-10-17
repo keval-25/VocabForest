@@ -49,6 +49,7 @@ export default function WordModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [isAcademicMode, setIsAcademicMode] = useState(true); // Default to IELTS/GRE Academic Level
   const [autoFillSuccess, setAutoFillSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -108,7 +109,8 @@ export default function WordModal({
     setError(null);
 
     try {
-      const res = await fetch(`/api/lookup?word=${encodeURIComponent(targetWord)}`);
+      const modeParam = isAcademicMode ? 'academic' : 'general';
+      const res = await fetch(`/api/lookup?word=${encodeURIComponent(targetWord)}&mode=${modeParam}`);
       const result = await res.json();
 
       if (result.success && result.data) {
@@ -256,47 +258,74 @@ export default function WordModal({
                 }}
               >
                 <Sparkles size={16} style={{ color: '#34d399' }} />
-                <span>Auto-filled definitions, examples, phonetics, and tags! You can still edit them below.</span>
+                <span>
+                  {isAcademicMode
+                    ? 'Auto-filled IELTS Band 9 & GRE academic definition, example, and tags (Google Oxford Languages)!'
+                    : 'Auto-filled definition, phonetics, and example!'}
+                </span>
               </div>
             )}
 
-            {/* Word & Phonetic Row with Auto-Fill button */}
+            {/* Word & Phonetic Row with Auto-Fill button & IELTS/GRE Toggle */}
             <div className="form-row">
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label className="form-label" htmlFor="word-input">
                     Word *
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => handleAutoFill()}
-                    disabled={isAutoFilling || !word.trim()}
-                    style={{
-                      fontSize: '0.75rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      color: isAutoFilling ? 'var(--text-tertiary)' : 'var(--primary)',
-                      fontWeight: 600,
-                      background: 'none',
-                      border: 'none',
-                      cursor: isAutoFilling || !word.trim() ? 'not-allowed' : 'pointer',
-                      opacity: !word.trim() ? 0.6 : 1,
-                    }}
-                    title="Auto-fill definition, phonetics, and examples"
-                  >
-                    {isAutoFilling ? (
-                      <>
-                        <Loader2 size={12} className="animate-spin" />
-                        <span>Fetching...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Wand2 size={12} />
-                        <span>Auto-Fill ✨</span>
-                      </>
-                    )}
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* IELTS/GRE Mode Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setIsAcademicMode(!isAcademicMode)}
+                      title="Toggle between IELTS/GRE Academic Level and General English"
+                      style={{
+                        fontSize: '0.72rem',
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-full)',
+                        background: isAcademicMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.06)',
+                        border: isAcademicMode ? '1px solid rgba(59, 130, 246, 0.45)' : '1px solid var(--glass-border)',
+                        color: isAcademicMode ? '#60a5fa' : 'var(--text-tertiary)',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      🎓 {isAcademicMode ? 'IELTS/GRE Level' : 'General'}
+                    </button>
+
+                    {/* Auto-Fill Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleAutoFill()}
+                      disabled={isAutoFilling || !word.trim()}
+                      style={{
+                        fontSize: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: isAutoFilling ? 'var(--text-tertiary)' : 'var(--primary)',
+                        fontWeight: 600,
+                        background: 'none',
+                        border: 'none',
+                        cursor: isAutoFilling || !word.trim() ? 'not-allowed' : 'pointer',
+                        opacity: !word.trim() ? 0.6 : 1,
+                      }}
+                      title="Auto-fill definitions from Google Oxford & GRE/IELTS engine"
+                    >
+                      {isAutoFilling ? (
+                        <>
+                          <Loader2 size={12} className="animate-spin" />
+                          <span>Fetching...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 size={12} />
+                          <span>Auto-Fill ✨</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div style={{ position: 'relative' }}>
                   <input
