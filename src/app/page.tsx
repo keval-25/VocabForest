@@ -311,24 +311,14 @@ export default function Home() {
 
         {/* Tags Quick Filter */}
         {allTags.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              flexWrap: 'wrap',
-              marginBottom: '24px',
-              padding: '0 2px',
-            }}
-          >
-            <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+          <div className="tags-strip" aria-label="Tag filters">
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, paddingRight: '2px', flexShrink: 0 }}>
               TAGS:
             </span>
             <button
               type="button"
-              className={`filter-pill ${selectedTag === 'all' ? 'active' : ''}`}
+              className={`tag-btn ${selectedTag === 'all' ? 'active' : ''}`}
               onClick={() => setSelectedTag('all')}
-              style={{ padding: '3px 9px', fontSize: '0.74rem' }}
             >
               #all
             </button>
@@ -336,9 +326,8 @@ export default function Home() {
               <button
                 key={tag}
                 type="button"
-                className={`filter-pill ${selectedTag === tag ? 'active' : ''}`}
+                className={`tag-btn ${selectedTag === tag ? 'active' : ''}`}
                 onClick={() => setSelectedTag(tag)}
-                style={{ padding: '3px 9px', fontSize: '0.74rem' }}
               >
                 #{tag}
               </button>

@@ -275,13 +275,14 @@ export default function WordModal({
                       title="Toggle IELTS/GRE Academic Level"
                       style={{
                         fontSize: '0.72rem',
-                        padding: '2px 7px',
+                        padding: '3px 9px',
                         borderRadius: 'var(--radius-full)',
-                        background: isAcademicMode ? 'var(--primary-subtle)' : 'var(--bg-canvas)',
-                        border: isAcademicMode ? '1px solid var(--primary-border)' : '1px solid var(--border-light)',
-                        color: isAcademicMode ? 'var(--primary)' : 'var(--text-muted)',
-                        fontWeight: 600,
+                        background: isAcademicMode ? 'var(--btn-primary-bg)' : 'var(--bg-canvas)',
+                        border: isAcademicMode ? '1px solid var(--btn-primary-bg)' : '1px solid var(--border-base)',
+                        color: isAcademicMode ? 'var(--btn-primary-text)' : 'var(--text-secondary)',
+                        fontWeight: 500,
                         cursor: 'pointer',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {isAcademicMode ? '🎓 IELTS/GRE' : 'General'}
@@ -293,14 +294,18 @@ export default function WordModal({
                       disabled={isAutoFilling || !word.trim()}
                       style={{
                         fontSize: '0.74rem',
+                        padding: '3px 9px',
+                        borderRadius: 'var(--radius-full)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
-                        color: isAutoFilling ? 'var(--text-muted)' : 'var(--primary)',
-                        fontWeight: 600,
-                        background: 'none',
-                        border: 'none',
+                        color: isAutoFilling ? 'var(--text-muted)' : 'var(--text-primary)',
+                        background: 'var(--bg-surface-elevated)',
+                        border: '1px solid var(--border-base)',
+                        fontWeight: 500,
                         cursor: isAutoFilling || !word.trim() ? 'not-allowed' : 'pointer',
+                        opacity: !word.trim() ? 0.6 : 1,
+                        whiteSpace: 'nowrap',
                       }}
                       title="Auto-fill definition and examples"
                     >

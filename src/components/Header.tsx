@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Plus, BookOpen, CheckCircle2 } from 'lucide-react';
+import { Plus, BookOpen } from 'lucide-react';
 
 interface HeaderProps {
   totalWords: number;
@@ -17,22 +17,16 @@ export default function Header({
   return (
     <header className="app-header">
       <div className="header-bar">
-        {/* Brand / Logo */}
+        {/* Brand & Inline Stats */}
         <div className="logo-group">
           <div className="logo-icon-box">
-            <BookOpen size={18} />
+            <BookOpen size={16} />
           </div>
-          <div>
+          <div className="logo-text-wrapper">
             <h1 className="logo-title">VocabForest</h1>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}>
-              <span className="stats-pill">
-                {totalWords} Words
-              </span>
-              <span className="stats-pill">
-                <CheckCircle2 size={12} style={{ color: 'var(--secondary)' }} />
-                {masteredWords} Mastered
-              </span>
-            </div>
+            <span className="header-stats-text">
+              {totalWords} {totalWords === 1 ? 'word' : 'words'} · {masteredWords} mastered
+            </span>
           </div>
         </div>
 
@@ -44,7 +38,7 @@ export default function Header({
             title="Add New Word (N)"
             id="header-add-word-btn"
           >
-            <Plus size={16} />
+            <Plus size={15} />
             <span>Add Word</span>
           </button>
         </div>
