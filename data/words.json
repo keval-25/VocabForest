@@ -1,0 +1,121 @@
+[
+  {
+    "word": "Komorebi",
+    "phonetic": "/ko-mo-re-bi/",
+    "partOfSpeech": "noun",
+    "meaning": "Sunlight filtering through the leaves of trees, creating shifting patterns of light and shade.",
+    "example": "We rested under the ancient banyan tree, captivated by the komorebi dancing on the moss.",
+    "tags": [
+      "nature",
+      "japanese",
+      "light"
+    ],
+    "mastered": false,
+    "difficulty": "medium",
+    "id": "word_1792231392591_jsuvr",
+    "createdAt": "2026-10-17T10:03:12.590Z",
+    "updatedAt": "2026-10-17T10:03:12.590Z"
+  },
+  {
+    "id": "word_6",
+    "word": "Ineffable",
+    "phonetic": "/ɪnˈef.ə.bəl/",
+    "partOfSpeech": "adjective",
+    "meaning": "Too great, sacred, or beautiful to be expressed or described in ordinary words.",
+    "example": "Standing atop the snow-capped peak at sunrise evoked an ineffable wonder.",
+    "tags": [
+      "wonder",
+      "transcendent",
+      "gre"
+    ],
+    "mastered": false,
+    "difficulty": "medium",
+    "createdAt": "2026-10-17T09:50:00.000Z",
+    "updatedAt": "2026-10-17T09:50:00.000Z"
+  },
+  {
+    "id": "word_5",
+    "word": "Mellifluous",
+    "phonetic": "/meˈlɪf.lu.əs/",
+    "partOfSpeech": "adjective",
+    "meaning": "Sweet or musical; pleasant to hear; smoothly flowing like honey.",
+    "example": "Her mellifluous voice captivated everyone in the quiet auditorium.",
+    "tags": [
+      "sound",
+      "elegance",
+      "gre"
+    ],
+    "mastered": true,
+    "difficulty": "hard",
+    "createdAt": "2026-10-17T09:40:00.000Z",
+    "updatedAt": "2026-10-17T09:40:00.000Z"
+  },
+  {
+    "id": "word_4",
+    "word": "Sonder",
+    "phonetic": "/ˈsɒn.dər/",
+    "partOfSpeech": "noun",
+    "meaning": "The profound realization that every random stranger is living a life as vivid, intricate, and complex as your own.",
+    "example": "Looking out the train window at illuminated high-rise apartments filled him with a quiet sense of sonder.",
+    "tags": [
+      "empathy",
+      "mindset",
+      "modern"
+    ],
+    "mastered": false,
+    "difficulty": "hard",
+    "createdAt": "2026-10-17T09:30:00.000Z",
+    "updatedAt": "2026-10-17T09:30:00.000Z"
+  },
+  {
+    "id": "word_3",
+    "word": "Ephemeral",
+    "phonetic": "/ɪˈfem.ər.əl/",
+    "partOfSpeech": "adjective",
+    "meaning": "Lasting for only a very short time; fleeting, transient, and momentary.",
+    "example": "The golden glow of the autumn twilight was breathtaking yet ephemeral.",
+    "tags": [
+      "time",
+      "philosophy",
+      "gre"
+    ],
+    "mastered": false,
+    "difficulty": "medium",
+    "createdAt": "2026-10-17T09:20:00.000Z",
+    "updatedAt": "2026-10-17T09:20:00.000Z"
+  },
+  {
+    "id": "word_2",
+    "word": "Petrichor",
+    "phonetic": "/ˈpet.rɪ.kɔːr/",
+    "partOfSpeech": "noun",
+    "meaning": "The pleasant, earthy scent produced when rain falls on dry soil after a long period of warm weather.",
+    "example": "She opened the glass balcony doors and inhaled the soothing petrichor of the afternoon drizzle.",
+    "tags": [
+      "nature",
+      "sensory",
+      "rare"
+    ],
+    "mastered": true,
+    "difficulty": "hard",
+    "createdAt": "2026-10-17T09:10:00.000Z",
+    "updatedAt": "2026-10-17T09:10:00.000Z"
+  },
+  {
+    "id": "word_1",
+    "word": "Serendipity",
+    "phonetic": "/ˌser.ənˈdɪp.ə.ti/",
+    "partOfSpeech": "noun",
+    "meaning": "The occurrence and development of events by chance in a happy, beneficial, or unexpectedly delightful way.",
+    "example": "Finding that vintage bookstore tucked away in the foggy alley was pure serendipity.",
+    "tags": [
+      "delight",
+      "destiny",
+      "daily"
+    ],
+    "mastered": false,
+    "difficulty": "medium",
+    "createdAt": "2026-10-17T09:00:00.000Z",
+    "updatedAt": "2026-10-17T09:00:00.000Z"
+  }
+]
