@@ -1,5 +1,40 @@
 [
   {
+    "word": "Aberration",
+    "phonetic": "/ˌæb.əˈɹeɪ.ʃn̩/",
+    "partOfSpeech": "noun",
+    "meaning": "A departure from what is normal, usual, or expected, typically one that is unwelcome.",
+    "example": "Scholars argue that understanding the aberration is pivotal to deciphering broader socioeconomic paradigm shifts.",
+    "tags": [
+      "gre",
+      "ielts-band-9",
+      "noun",
+      "anomaly",
+      "deviation"
+    ],
+    "mastered": false,
+    "difficulty": "hard",
+    "id": "word_1792235032108_1i63g",
+    "createdAt": "2026-10-17T11:03:52.108Z",
+    "updatedAt": "2026-10-17T11:03:52.108Z"
+  },
+  {
+    "word": "Pessimistic",
+    "phonetic": "",
+    "partOfSpeech": "adjective",
+    "meaning": "Marked by pessimism and little hopefulness; expecting the worst.",
+    "example": "Her pessimistic approach brought fresh clarity to the discussion.",
+    "tags": [
+      "adjective",
+      "vocabulary"
+    ],
+    "mastered": false,
+    "difficulty": "hard",
+    "id": "word_1792234619342_zkx4l",
+    "createdAt": "2026-10-17T10:56:59.342Z",
+    "updatedAt": "2026-10-17T10:56:59.342Z"
+  },
+  {
     "word": "Eloquent",
     "phonetic": "/ˈɛl.əˌkwənt/",
     "partOfSpeech": "adjective",
@@ -16,23 +51,6 @@
     "id": "word_1792232381093_z62z0",
     "createdAt": "2026-10-17T10:19:41.093Z",
     "updatedAt": "2026-10-17T10:19:41.093Z"
-  },
-  {
-    "word": "Komorebi",
-    "phonetic": "/ko-mo-re-bi/",
-    "partOfSpeech": "noun",
-    "meaning": "Sunlight filtering through the leaves of trees, creating shifting patterns of light and shade.",
-    "example": "We rested under the ancient banyan tree, captivated by the komorebi dancing on the moss.",
-    "tags": [
-      "nature",
-      "japanese",
-      "light"
-    ],
-    "mastered": false,
-    "difficulty": "medium",
-    "id": "word_1792231392591_jsuvr",
-    "createdAt": "2026-10-17T10:03:12.590Z",
-    "updatedAt": "2026-10-17T10:03:12.590Z"
   },
   {
     "id": "word_6",
