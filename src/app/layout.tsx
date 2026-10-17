@@ -5,6 +5,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#f8f6f0',
 };
 
 export const metadata: Metadata = {
@@ -13,6 +15,20 @@ export const metadata: Metadata = {
     'A clean, warm cream & beige distraction-free vocabulary builder with Google Oxford authoritative definitions, IELTS & GRE academic usage, and local persistence.',
   keywords: ['vocabulary', 'words', 'definitions', 'gre', 'ielts', 'learning', 'flashcards'],
   authors: [{ name: 'VocabForest' }],
+  applicationName: 'VocabForest',
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'VocabForest',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
