@@ -8,10 +8,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'VocabForest — iPhone Glass UI Vocabulary & Word Builder',
+  title: 'VocabForest — Quiet, Editorial Vocabulary & Word Builder',
   description:
-    'An ultra-modern, motion-infused vocabulary builder crafted with iPhone Liquid Glassmorphism, real-time theme engines, audio pronunciation, and local database persistence.',
-  keywords: ['vocabulary', 'words', 'definitions', 'glassmorphism', 'iOS UI', 'learning', 'flashcards'],
+    'A clean, warm cream & beige distraction-free vocabulary builder with Google Oxford authoritative definitions, IELTS & GRE academic usage, and local persistence.',
+  keywords: ['vocabulary', 'words', 'definitions', 'gre', 'ielts', 'learning', 'flashcards'],
   authors: [{ name: 'VocabForest' }],
 };
 
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-theme="manus-midnight">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );

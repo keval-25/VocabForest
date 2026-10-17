@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Plus, Shuffle, Search, Sparkles } from 'lucide-react';
+import { Plus, Shuffle, Search } from 'lucide-react';
 
 interface FloatingDockProps {
   onOpenAddModal: () => void;
@@ -15,7 +15,7 @@ export default function FloatingDock({
   onFocusSearch,
 }: FloatingDockProps) {
   return (
-    <div className="floating-bottom-dock glass-specular-edge" role="toolbar" aria-label="Quick Actions">
+    <div className="floating-dock" role="toolbar" aria-label="Quick Actions">
       {/* Quick Search Shortcut */}
       <button
         type="button"
@@ -23,7 +23,7 @@ export default function FloatingDock({
         onClick={onFocusSearch}
         title="Quick Search (/)"
       >
-        <Search size={16} />
+        <Search size={15} />
         <span>Search</span>
       </button>
 
@@ -31,11 +31,11 @@ export default function FloatingDock({
       <button
         type="button"
         id="bottom-dock-add-word-btn"
-        className="dock-add-center-btn"
+        className="dock-add-btn"
         onClick={onOpenAddModal}
-        title="Add Word to VocabForest"
+        title="Add Word (N)"
       >
-        <Plus size={20} />
+        <Plus size={17} />
         <span>Add Word</span>
       </button>
 
@@ -46,7 +46,7 @@ export default function FloatingDock({
         onClick={onRandomWord}
         title="Discover a random word"
       >
-        <Shuffle size={16} />
+        <Shuffle size={15} />
         <span>Random</span>
       </button>
     </div>

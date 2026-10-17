@@ -1,22 +1,41 @@
 [
   {
-    "word": "Aberration",
-    "phonetic": "/ˌæb.əˈɹeɪ.ʃn̩/",
-    "partOfSpeech": "noun",
-    "meaning": "A departure from what is normal, usual, or expected, typically one that is unwelcome.",
-    "example": "Scholars argue that understanding the aberration is pivotal to deciphering broader socioeconomic paradigm shifts.",
+    "word": "Mitigate",
+    "phonetic": "/ˈmɪt.ɪ.ɡeɪt/",
+    "partOfSpeech": "verb",
+    "meaning": "Make less severe, serious, or painful.",
+    "example": "Comprehensive empirical research and policy reforms are imperative to mitigate the systemic challenges identified in the study.",
     "tags": [
       "gre",
       "ielts-band-9",
-      "noun",
-      "anomaly",
-      "deviation"
+      "verb",
+      "alleviate",
+      "reduce"
     ],
     "mastered": false,
     "difficulty": "hard",
-    "id": "word_1792235032108_1i63g",
-    "createdAt": "2026-10-17T11:03:52.108Z",
-    "updatedAt": "2026-10-17T11:03:52.108Z"
+    "id": "word_1792236636153_kk7ew",
+    "createdAt": "2026-10-17T11:30:36.153Z",
+    "updatedAt": "2026-10-17T11:30:36.153Z"
+  },
+  {
+    "word": "Jeopardise",
+    "phonetic": "",
+    "partOfSpeech": "verb",
+    "meaning": "Put (someone or something) into a situation in which there is a danger of loss, harm, or failure.",
+    "example": "Comprehensive empirical research and policy reforms are imperative to jeopardise the systemic challenges identified in the study.",
+    "tags": [
+      "gre",
+      "ielts-band-9",
+      "verb",
+      "peril",
+      "threaten"
+    ],
+    "mastered": false,
+    "difficulty": "hard",
+    "id": "word_1792236303652_r3u3k",
+    "createdAt": "2026-10-17T11:25:03.652Z",
+    "updatedAt": "2026-10-17T11:25:03.652Z"
   },
   {
     "word": "Pessimistic",
@@ -33,125 +52,5 @@
     "id": "word_1792234619342_zkx4l",
     "createdAt": "2026-10-17T10:56:59.342Z",
     "updatedAt": "2026-10-17T10:56:59.342Z"
-  },
-  {
-    "word": "Eloquent",
-    "phonetic": "/ˈɛl.əˌkwənt/",
-    "partOfSpeech": "adjective",
-    "meaning": "Fluently persuasive and articulate",
-    "example": "Her eloquent approach brought fresh clarity to the discussion.",
-    "tags": [
-      "adjective",
-      "articulate",
-      "well-spoken",
-      "vocabulary"
-    ],
-    "mastered": false,
-    "difficulty": "medium",
-    "id": "word_1792232381093_z62z0",
-    "createdAt": "2026-10-17T10:19:41.093Z",
-    "updatedAt": "2026-10-17T10:19:41.093Z"
-  },
-  {
-    "id": "word_6",
-    "word": "Ineffable",
-    "phonetic": "/ɪnˈef.ə.bəl/",
-    "partOfSpeech": "adjective",
-    "meaning": "Too great, sacred, or beautiful to be expressed or described in ordinary words.",
-    "example": "Standing atop the snow-capped peak at sunrise evoked an ineffable wonder.",
-    "tags": [
-      "wonder",
-      "transcendent",
-      "gre"
-    ],
-    "mastered": false,
-    "difficulty": "medium",
-    "createdAt": "2026-10-17T09:50:00.000Z",
-    "updatedAt": "2026-10-17T09:50:00.000Z"
-  },
-  {
-    "id": "word_5",
-    "word": "Mellifluous",
-    "phonetic": "/meˈlɪf.lu.əs/",
-    "partOfSpeech": "adjective",
-    "meaning": "Sweet or musical; pleasant to hear; smoothly flowing like honey.",
-    "example": "Her mellifluous voice captivated everyone in the quiet auditorium.",
-    "tags": [
-      "sound",
-      "elegance",
-      "gre"
-    ],
-    "mastered": true,
-    "difficulty": "hard",
-    "createdAt": "2026-10-17T09:40:00.000Z",
-    "updatedAt": "2026-10-17T09:40:00.000Z"
-  },
-  {
-    "id": "word_4",
-    "word": "Sonder",
-    "phonetic": "/ˈsɒn.dər/",
-    "partOfSpeech": "noun",
-    "meaning": "The profound realization that every random stranger is living a life as vivid, intricate, and complex as your own.",
-    "example": "Looking out the train window at illuminated high-rise apartments filled him with a quiet sense of sonder.",
-    "tags": [
-      "empathy",
-      "mindset",
-      "modern"
-    ],
-    "mastered": false,
-    "difficulty": "hard",
-    "createdAt": "2026-10-17T09:30:00.000Z",
-    "updatedAt": "2026-10-17T09:30:00.000Z"
-  },
-  {
-    "id": "word_3",
-    "word": "Ephemeral",
-    "phonetic": "/ɪˈfem.ər.əl/",
-    "partOfSpeech": "adjective",
-    "meaning": "Lasting for only a very short time; fleeting, transient, and momentary.",
-    "example": "The golden glow of the autumn twilight was breathtaking yet ephemeral.",
-    "tags": [
-      "time",
-      "philosophy",
-      "gre"
-    ],
-    "mastered": false,
-    "difficulty": "medium",
-    "createdAt": "2026-10-17T09:20:00.000Z",
-    "updatedAt": "2026-10-17T09:20:00.000Z"
-  },
-  {
-    "id": "word_2",
-    "word": "Petrichor",
-    "phonetic": "/ˈpet.rɪ.kɔːr/",
-    "partOfSpeech": "noun",
-    "meaning": "The pleasant, earthy scent produced when rain falls on dry soil after a long period of warm weather.",
-    "example": "She opened the glass balcony doors and inhaled the soothing petrichor of the afternoon drizzle.",
-    "tags": [
-      "nature",
-      "sensory",
-      "rare"
-    ],
-    "mastered": true,
-    "difficulty": "hard",
-    "createdAt": "2026-10-17T09:10:00.000Z",
-    "updatedAt": "2026-10-17T09:10:00.000Z"
-  },
-  {
-    "id": "word_1",
-    "word": "Serendipity",
-    "phonetic": "/ˌser.ənˈdɪp.ə.ti/",
-    "partOfSpeech": "noun",
-    "meaning": "The occurrence and development of events by chance in a happy, beneficial, or unexpectedly delightful way.",
-    "example": "Finding that vintage bookstore tucked away in the foggy alley was pure serendipity.",
-    "tags": [
-      "delight",
-      "destiny",
-      "daily"
-    ],
-    "mastered": false,
-    "difficulty": "medium",
-    "createdAt": "2026-10-17T09:00:00.000Z",
-    "updatedAt": "2026-10-17T09:00:00.000Z"
   }
 ]

@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Search, Sparkles, Plus, Filter, ArrowUpDown, BookOpen, AlertCircle } from 'lucide-react';
+import { Search, Plus, ArrowUpDown, BookOpen, Loader2 } from 'lucide-react';
 import AmbientBackground from '@/components/AmbientBackground';
 import Header from '@/components/Header';
 import WordCard from '@/components/WordCard';
 import FloatingDock from '@/components/FloatingDock';
 import WordModal from '@/components/WordModal';
 import Toast, { ToastMessage } from '@/components/Toast';
-import { WordItem, WordInput, ThemePreset, PartOfSpeech } from '@/types/word';
+import { WordItem, WordInput, PartOfSpeech } from '@/types/word';
 
 export default function Home() {
   const [words, setWords] = useState<WordItem[]>([]);
@@ -17,7 +17,6 @@ export default function Home() {
   const [selectedPos, setSelectedPos] = useState<string>('all');
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
-  const [currentTheme, setCurrentTheme] = useState<ThemePreset>('manus-midnight');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +36,7 @@ export default function Home() {
 
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3500);
+    }, 3200);
   }, []);
 
   // Fetch words from backend local JSON DB
@@ -61,26 +60,9 @@ export default function Home() {
     fetchWords();
   }, [fetchWords]);
 
-  // Load and apply saved theme
-  useEffect(() => {
-    const saved = localStorage.getItem('vocabforest-theme') as ThemePreset;
-    if (saved) {
-      setCurrentTheme(saved);
-      document.documentElement.setAttribute('data-theme', saved);
-    }
-  }, []);
-
-  const handleThemeChange = (theme: ThemePreset) => {
-    setCurrentTheme(theme);
-    localStorage.setItem('vocabforest-theme', theme);
-    document.documentElement.setAttribute('data-theme', theme);
-    showToast(`Switched theme to ${theme.replace('-', ' ')}`, 'info');
-  };
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if typing in an input
       const target = e.target as HTMLElement;
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
 
@@ -125,7 +107,7 @@ export default function Home() {
       }
 
       setWords((prev) => [result.data, ...prev]);
-      showToast(`Added "${result.data.word}" to VocabForest!`, 'success');
+      showToast(`Added "${result.data.word}" to your lexicon`, 'success');
     } else if (modalMode === 'edit' && id) {
       const res = await fetch(`/api/words/${id}`, {
         method: 'PUT',
@@ -139,7 +121,7 @@ export default function Home() {
       }
 
       setWords((prev) => prev.map((w) => (w.id === id ? result.data : w)));
-      showToast(`Updated "${result.data.word}" details.`, 'success');
+      showToast(`Updated "${result.data.word}"`, 'success');
     }
   };
 
@@ -155,14 +137,13 @@ export default function Home() {
     }
 
     setWords((prev) => prev.filter((w) => w.id !== id));
-    showToast(`Removed "${wordToDelete?.word || 'Word'}" from list.`, 'info');
+    showToast(`Removed "${wordToDelete?.word || 'Word'}"`, 'info');
   };
 
   const handleToggleMastered = async (item: WordItem, e: React.MouseEvent) => {
     e.stopPropagation();
     const updatedStatus = !item.mastered;
 
-    // Optimistic UI update
     setWords((prev) =>
       prev.map((w) => (w.id === item.id ? { ...w, mastered: updatedStatus } : w))
     );
@@ -177,13 +158,10 @@ export default function Home() {
       if (!result.success) throw new Error();
 
       showToast(
-        updatedStatus
-          ? `Marked "${item.word}" as mastered! 🌟`
-          : `Unmarked "${item.word}"`,
+        updatedStatus ? `Marked "${item.word}" as mastered` : `Unmarked "${item.word}"`,
         'success'
       );
     } catch {
-      // Revert if error
       setWords((prev) =>
         prev.map((w) => (w.id === item.id ? { ...w, mastered: !updatedStatus } : w))
       );
@@ -196,7 +174,7 @@ export default function Home() {
     if (words.length === 0) return;
     const randomIndex = Math.floor(Math.random() * words.length);
     openEditModal(words[randomIndex]);
-    showToast(`Discovering: ${words[randomIndex].word}!`, 'info');
+    showToast(`Viewing: ${words[randomIndex].word}`, 'info');
   };
 
   // Extract all unique tags
@@ -210,7 +188,6 @@ export default function Home() {
   const filteredWords = useMemo(() => {
     let result = [...words];
 
-    // Search query filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(
@@ -222,19 +199,16 @@ export default function Home() {
       );
     }
 
-    // Part of speech filter
     if (selectedPos !== 'all') {
       result = result.filter((w) => w.partOfSpeech.toLowerCase() === selectedPos);
     }
 
-    // Tag filter
     if (selectedTag !== 'all') {
       result = result.filter((w) =>
         w.tags.map((t) => t.toLowerCase()).includes(selectedTag)
       );
     }
 
-    // Sort
     if (sortBy === 'az') {
       result.sort((a, b) => a.word.localeCompare(b.word));
     } else if (sortBy === 'za') {
@@ -243,7 +217,6 @@ export default function Home() {
       const rank: Record<string, number> = { hard: 3, medium: 2, easy: 1 };
       result.sort((a, b) => (rank[b.difficulty] || 0) - (rank[a.difficulty] || 0));
     } else {
-      // Newest first
       result.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
@@ -256,18 +229,13 @@ export default function Home() {
 
   return (
     <>
-      {/* Haikei Ambient Mesh Vector Background */}
       <AmbientBackground />
-
-      {/* iOS Toast Notifications */}
       <Toast toasts={toasts} />
 
-      {/* Top Glass Navigation Bar */}
+      {/* Top Navigation Bar */}
       <Header
         totalWords={words.length}
         masteredWords={masteredCount}
-        currentTheme={currentTheme}
-        onThemeChange={handleThemeChange}
         onOpenAddModal={openAddModal}
       />
 
@@ -275,28 +243,27 @@ export default function Home() {
         {/* Hero Section */}
         <section className="hero-section">
           <div className="hero-badge">
-            <Sparkles size={14} />
-            <span>iPhone Liquid Glass Vocabulary Suite</span>
+            <span>Vocabulary & Lexicon Builder</span>
           </div>
           <h1 className="hero-title">
-            Grow your mind's <span>Vocab Forest</span>
+            Grow your mind's VocabForest
           </h1>
           <p className="hero-sub">
-            Capture new words, explore nuanced definitions, listen to authentic pronunciations,
-            and persist your expanding lexicon safely with full CRUD intelligence.
+            A quiet, distraction-free space to record words, authoritative definitions,
+            and high-level IELTS & GRE academic usage.
           </p>
         </section>
 
         {/* Filter and Search Bar */}
-        <section className="filter-glass-bar glass-specular-edge" aria-label="Search and filters">
+        <section className="filter-bar" aria-label="Search and filters">
           {/* Search Input */}
           <div className="search-input-wrapper">
-            <Search size={18} className="search-icon" />
+            <Search size={16} className="search-icon" />
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search words, meanings, or tags... (Press / to focus)"
-              className="glass-input"
+              className="clean-input"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               id="search-input"
@@ -325,11 +292,11 @@ export default function Home() {
           </div>
 
           {/* Sort Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ArrowUpDown size={16} style={{ color: 'var(--text-tertiary)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <ArrowUpDown size={15} style={{ color: 'var(--text-muted)' }} />
             <select
-              className="glass-input"
-              style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem' }}
+              className="clean-input"
+              style={{ width: 'auto', padding: '7px 14px', fontSize: '0.84rem' }}
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               aria-label="Sort words"
@@ -348,20 +315,20 @@ export default function Home() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               flexWrap: 'wrap',
-              marginBottom: '28px',
-              padding: '0 4px',
+              marginBottom: '24px',
+              padding: '0 2px',
             }}
           >
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>
               TAGS:
             </span>
             <button
               type="button"
               className={`filter-pill ${selectedTag === 'all' ? 'active' : ''}`}
               onClick={() => setSelectedTag('all')}
-              style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+              style={{ padding: '3px 9px', fontSize: '0.74rem' }}
             >
               #all
             </button>
@@ -371,7 +338,7 @@ export default function Home() {
                 type="button"
                 className={`filter-pill ${selectedTag === tag ? 'active' : ''}`}
                 onClick={() => setSelectedTag(tag)}
-                style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                style={{ padding: '3px 9px', fontSize: '0.74rem' }}
               >
                 #{tag}
               </button>
@@ -383,11 +350,11 @@ export default function Home() {
         {loading ? (
           <div className="empty-state">
             <div className="empty-icon-circle">
-              <Sparkles size={28} className="animate-spin" />
+              <Loader2 size={24} className="animate-spin" />
             </div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Loading vocabulary...</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              Retrieving stored words from your local database.
+            <h3 style={{ fontSize: '1.15rem', marginBottom: '6px' }}>Loading vocabulary...</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+              Retrieving words from your local database.
             </p>
           </div>
         ) : filteredWords.length > 0 ? (
@@ -404,33 +371,33 @@ export default function Home() {
         ) : (
           <div className="empty-state">
             <div className="empty-icon-circle">
-              <BookOpen size={28} />
+              <BookOpen size={24} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>No words found</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '1.15rem', marginBottom: '6px' }}>No words found</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '18px' }}>
               {searchQuery || selectedPos !== 'all' || selectedTag !== 'all'
                 ? 'Try clearing your search query or filters.'
-                : 'Start building your personal lexicon now!'}
+                : 'Start expanding your personal lexicon.'}
             </p>
             <button
               onClick={openAddModal}
-              className="glass-btn glass-btn-primary"
+              className="btn btn-primary"
             >
-              <Plus size={16} />
+              <Plus size={15} />
               <span>Add Your First Word</span>
             </button>
           </div>
         )}
       </main>
 
-      {/* Floating Bottom iOS Action Dock */}
+      {/* Floating Bottom Action Dock */}
       <FloatingDock
         onOpenAddModal={openAddModal}
         onRandomWord={handleRandomWord}
         onFocusSearch={() => searchInputRef.current?.focus()}
       />
 
-      {/* Add / Edit Frosted Glass Modal */}
+      {/* Add / Edit Clean Modal */}
       <WordModal
         isOpen={isModalOpen}
         mode={modalMode}

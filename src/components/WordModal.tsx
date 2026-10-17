@@ -49,7 +49,7 @@ export default function WordModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
-  const [isAcademicMode, setIsAcademicMode] = useState(true); // Default to IELTS/GRE Academic Level
+  const [isAcademicMode, setIsAcademicMode] = useState(true);
   const [autoFillSuccess, setAutoFillSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -68,7 +68,6 @@ export default function WordModal({
         setDifficulty(initialData.difficulty || 'medium');
         setMastered(!!initialData.mastered);
       } else {
-        // Reset for new word
         setWord('');
         setPhonetic('');
         setPartOfSpeech('noun');
@@ -82,7 +81,6 @@ export default function WordModal({
       setAutoFillSuccess(false);
       setShowDeleteConfirm(false);
 
-      // Focus input
       setTimeout(() => {
         wordInputRef.current?.focus();
       }, 100);
@@ -100,7 +98,6 @@ export default function WordModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Auto-Fill function that looks up word meaning, phonetic, POS, example, and tags
   const handleAutoFill = async (wordToLookup?: string) => {
     const targetWord = (wordToLookup || word).trim();
     if (!targetWord || targetWord.length < 2) return;
@@ -124,7 +121,7 @@ export default function WordModal({
         if (d.difficulty) setDifficulty(d.difficulty);
 
         setAutoFillSuccess(true);
-        setTimeout(() => setAutoFillSuccess(false), 4500);
+        setTimeout(() => setAutoFillSuccess(false), 4000);
       } else {
         setError(result.error || 'Could not find automatic definition. You can fill it in manually.');
       }
@@ -194,20 +191,20 @@ export default function WordModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="glass-modal glass-specular-edge" role="dialog" aria-modal="true">
-        {/* Modal Header */}
+      <div className="clean-modal" role="dialog" aria-modal="true">
+        {/* Header */}
         <div className="modal-header">
           <div className="modal-title-group">
             <div className="modal-icon-badge">
-              {mode === 'add' ? <Plus size={20} /> : <Edit2 size={20} />}
+              {mode === 'add' ? <Plus size={18} /> : <Edit2 size={18} />}
             </div>
             <div>
               <h2 className="modal-title">
-                {mode === 'add' ? 'Add New Word' : 'Edit Word Details'}
+                {mode === 'add' ? 'Add Word' : 'Edit Word Details'}
               </h2>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 {mode === 'add'
-                  ? 'Type a word to auto-fill definitions, examples, and phonetics'
+                  ? 'Enter word to auto-populate definitions and examples'
                   : `Updating: ${initialData?.word}`}
               </p>
             </div>
@@ -219,99 +216,93 @@ export default function WordModal({
             onClick={onClose}
             aria-label="Close modal"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
-        {/* Modal Form */}
+        {/* Form Body */}
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             {error && (
               <div
                 style={{
-                  padding: '10px 14px',
+                  padding: '9px 13px',
                   borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'rgba(244, 63, 94, 0.15)',
-                  border: '1px solid rgba(244, 63, 94, 0.35)',
-                  color: '#fda4af',
-                  fontSize: '0.85rem',
+                  backgroundColor: '#fdf2f2',
+                  border: '1px solid #f9d5d5',
+                  color: '#992828',
+                  fontSize: '0.84rem',
                 }}
               >
                 {error}
               </div>
             )}
 
-            {/* Auto-fill banner alert */}
             {autoFillSuccess && (
               <div
                 style={{
-                  padding: '10px 14px',
+                  padding: '9px 13px',
                   borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                  border: '1px solid rgba(16, 185, 129, 0.35)',
-                  color: '#6ee7b7',
-                  fontSize: '0.85rem',
+                  backgroundColor: 'var(--secondary-subtle)',
+                  border: '1px solid var(--secondary-border)',
+                  color: 'var(--secondary)',
+                  fontSize: '0.84rem',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  animation: 'fadeIn 0.25s ease-out',
                 }}
               >
-                <Sparkles size={16} style={{ color: '#34d399' }} />
+                <Sparkles size={15} />
                 <span>
                   {isAcademicMode
-                    ? 'Auto-filled IELTS Band 9 & GRE academic definition, example, and tags (Google Oxford Languages)!'
-                    : 'Auto-filled definition, phonetics, and example!'}
+                    ? 'Retrieved Oxford academic definitions & IELTS Band 9 context sentence!'
+                    : 'Auto-filled word definition, phonetics, and examples!'}
                 </span>
               </div>
             )}
 
-            {/* Word & Phonetic Row with Auto-Fill button & IELTS/GRE Toggle */}
+            {/* Word & Phonetic Row */}
             <div className="form-row">
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label className="form-label" htmlFor="word-input">
                     Word *
                   </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* IELTS/GRE Mode Toggle */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button
                       type="button"
                       onClick={() => setIsAcademicMode(!isAcademicMode)}
-                      title="Toggle between IELTS/GRE Academic Level and General English"
+                      title="Toggle IELTS/GRE Academic Level"
                       style={{
                         fontSize: '0.72rem',
-                        padding: '2px 8px',
+                        padding: '2px 7px',
                         borderRadius: 'var(--radius-full)',
-                        background: isAcademicMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.06)',
-                        border: isAcademicMode ? '1px solid rgba(59, 130, 246, 0.45)' : '1px solid var(--glass-border)',
-                        color: isAcademicMode ? '#60a5fa' : 'var(--text-tertiary)',
+                        background: isAcademicMode ? 'var(--primary-subtle)' : 'var(--bg-canvas)',
+                        border: isAcademicMode ? '1px solid var(--primary-border)' : '1px solid var(--border-light)',
+                        color: isAcademicMode ? 'var(--primary)' : 'var(--text-muted)',
                         fontWeight: 600,
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease',
                       }}
                     >
-                      🎓 {isAcademicMode ? 'IELTS/GRE Level' : 'General'}
+                      {isAcademicMode ? '🎓 IELTS/GRE' : 'General'}
                     </button>
 
-                    {/* Auto-Fill Button */}
                     <button
                       type="button"
                       onClick={() => handleAutoFill()}
                       disabled={isAutoFilling || !word.trim()}
                       style={{
-                        fontSize: '0.75rem',
+                        fontSize: '0.74rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
-                        color: isAutoFilling ? 'var(--text-tertiary)' : 'var(--primary)',
+                        color: isAutoFilling ? 'var(--text-muted)' : 'var(--primary)',
                         fontWeight: 600,
                         background: 'none',
                         border: 'none',
                         cursor: isAutoFilling || !word.trim() ? 'not-allowed' : 'pointer',
-                        opacity: !word.trim() ? 0.6 : 1,
                       }}
-                      title="Auto-fill definitions from Google Oxford & GRE/IELTS engine"
+                      title="Auto-fill definition and examples"
                     >
                       {isAutoFilling ? (
                         <>
@@ -321,12 +312,13 @@ export default function WordModal({
                       ) : (
                         <>
                           <Wand2 size={12} />
-                          <span>Auto-Fill ✨</span>
+                          <span>Auto-Fill</span>
                         </>
                       )}
                     </button>
                   </div>
                 </div>
+
                 <div style={{ position: 'relative' }}>
                   <input
                     id="word-input"
@@ -338,7 +330,6 @@ export default function WordModal({
                     value={word}
                     onChange={(e) => setWord(e.target.value)}
                     onBlur={() => {
-                      // If user enters word and meaning is empty, auto-trigger lookup
                       if (word.trim().length >= 3 && !meaning.trim() && !isAutoFilling) {
                         handleAutoFill(word);
                       }
@@ -354,17 +345,15 @@ export default function WordModal({
                     <div
                       style={{
                         position: 'absolute',
-                        right: '12px',
+                        right: '10px',
                         top: '50%',
                         transform: 'translateY(-50%)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '0.78rem',
                         color: 'var(--primary)',
                       }}
                     >
-                      <Loader2 size={16} className="animate-spin" />
+                      <Loader2 size={15} className="animate-spin" />
                     </div>
                   )}
                 </div>
@@ -463,7 +452,7 @@ export default function WordModal({
               <input
                 id="tags-input"
                 type="text"
-                placeholder="gre, daily, philosophy, nature"
+                placeholder="gre, ielts, academic, philosophy"
                 className="form-input"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
@@ -471,26 +460,26 @@ export default function WordModal({
             </div>
 
             {/* Mastered Checkbox */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
               <input
                 id="mastered-checkbox"
                 type="checkbox"
                 checked={mastered}
                 onChange={(e) => setMastered(e.target.checked)}
-                style={{ width: '18px', height: '18px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
               />
-              <label htmlFor="mastered-checkbox" style={{ fontSize: '0.88rem', cursor: 'pointer', userSelect: 'none' }}>
+              <label htmlFor="mastered-checkbox" style={{ fontSize: '0.86rem', cursor: 'pointer', userSelect: 'none' }}>
                 I have mastered this word
               </label>
             </div>
           </div>
 
-          {/* Modal Footer */}
+          {/* Footer */}
           <div className="modal-footer">
             {mode === 'edit' && onDelete ? (
               showDeleteConfirm ? (
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.82rem', color: '#f43f5e', fontWeight: 600 }}>Sure?</span>
+                  <span style={{ fontSize: '0.82rem', color: '#992828', fontWeight: 600 }}>Sure?</span>
                   <button
                     type="button"
                     onClick={handleDelete}
@@ -513,7 +502,7 @@ export default function WordModal({
                   onClick={() => setShowDeleteConfirm(true)}
                   className="delete-action-btn"
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size={14} />
                   <span>Delete Word</span>
                 </button>
               )
@@ -521,25 +510,25 @@ export default function WordModal({
               <div />
             )}
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 type="button"
                 onClick={onClose}
-                className="glass-btn"
+                className="btn btn-secondary"
                 disabled={isSubmitting || isAutoFilling}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="glass-btn glass-btn-primary"
+                className="btn btn-primary"
                 disabled={isSubmitting || isAutoFilling}
               >
                 {isSubmitting ? (
                   <span>Saving...</span>
                 ) : (
                   <>
-                    <Check size={18} />
+                    <Check size={16} />
                     <span>{mode === 'add' ? 'Save Word' : 'Save Changes'}</span>
                   </>
                 )}

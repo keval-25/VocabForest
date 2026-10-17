@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
 
 export interface ToastMessage {
   id: string;
@@ -19,10 +19,10 @@ export default function Toast({ toasts }: ToastProps) {
   return (
     <div className="toast-container" aria-live="polite">
       {toasts.map((t) => (
-        <div key={t.id} className="ios-toast-pill glass-specular-edge">
-          {t.type === 'success' && <CheckCircle2 size={18} style={{ color: '#10b981' }} />}
-          {t.type === 'error' && <AlertCircle size={18} style={{ color: '#f43f5e' }} />}
-          {t.type === 'info' && <Sparkles size={18} style={{ color: 'var(--primary)' }} />}
+        <div key={t.id} className="toast-pill">
+          {t.type === 'success' && <CheckCircle2 size={16} style={{ color: 'var(--secondary)' }} />}
+          {t.type === 'error' && <AlertCircle size={16} style={{ color: '#992828' }} />}
+          {t.type === 'info' && <Info size={16} style={{ color: 'var(--primary)' }} />}
           <span>{t.text}</span>
         </div>
       ))}
