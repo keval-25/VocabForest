@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, Edit2, Trash2, Check, Sparkles, BookOpen } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, Check, Sparkles, Loader2, Wand2 } from 'lucide-react';
 import { WordItem, WordInput, PartOfSpeech, DifficultyLevel } from '@/types/word';
 
 interface WordModalProps {
@@ -48,6 +48,8 @@ export default function WordModal({
   const [mastered, setMastered] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [autoFillSuccess, setAutoFillSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -76,6 +78,7 @@ export default function WordModal({
         setMastered(false);
       }
       setError(null);
+      setAutoFillSuccess(false);
       setShowDeleteConfirm(false);
 
       // Focus input
@@ -95,6 +98,40 @@ export default function WordModal({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Auto-Fill function that looks up word meaning, phonetic, POS, example, and tags
+  const handleAutoFill = async (wordToLookup?: string) => {
+    const targetWord = (wordToLookup || word).trim();
+    if (!targetWord || targetWord.length < 2) return;
+
+    setIsAutoFilling(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/lookup?word=${encodeURIComponent(targetWord)}`);
+      const result = await res.json();
+
+      if (result.success && result.data) {
+        const d = result.data;
+        if (d.word) setWord(d.word);
+        if (d.phonetic) setPhonetic(d.phonetic);
+        if (d.partOfSpeech) setPartOfSpeech(d.partOfSpeech);
+        if (d.meaning) setMeaning(d.meaning);
+        if (d.example) setExample(d.example);
+        if (d.tags) setTags(d.tags);
+        if (d.difficulty) setDifficulty(d.difficulty);
+
+        setAutoFillSuccess(true);
+        setTimeout(() => setAutoFillSuccess(false), 4500);
+      } else {
+        setError(result.error || 'Could not find automatic definition. You can fill it in manually.');
+      }
+    } catch {
+      setError('Network error while looking up word definition.');
+    } finally {
+      setIsAutoFilling(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -168,7 +205,7 @@ export default function WordModal({
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
                 {mode === 'add'
-                  ? 'Expand your vocabulary with definitions and examples'
+                  ? 'Type a word to auto-fill definitions, examples, and phonetics'
                   : `Updating: ${initialData?.word}`}
               </p>
             </div>
@@ -202,22 +239,106 @@ export default function WordModal({
               </div>
             )}
 
-            {/* Word & Phonetic Row */}
+            {/* Auto-fill banner alert */}
+            {autoFillSuccess && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.35)',
+                  color: '#6ee7b7',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  animation: 'fadeIn 0.25s ease-out',
+                }}
+              >
+                <Sparkles size={16} style={{ color: '#34d399' }} />
+                <span>Auto-filled definitions, examples, phonetics, and tags! You can still edit them below.</span>
+              </div>
+            )}
+
+            {/* Word & Phonetic Row with Auto-Fill button */}
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label" htmlFor="word-input">
-                  Word *
-                </label>
-                <input
-                  id="word-input"
-                  ref={wordInputRef}
-                  type="text"
-                  required
-                  placeholder="e.g. Ephemeral"
-                  className="form-input"
-                  value={word}
-                  onChange={(e) => setWord(e.target.value)}
-                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="form-label" htmlFor="word-input">
+                    Word *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleAutoFill()}
+                    disabled={isAutoFilling || !word.trim()}
+                    style={{
+                      fontSize: '0.75rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      color: isAutoFilling ? 'var(--text-tertiary)' : 'var(--primary)',
+                      fontWeight: 600,
+                      background: 'none',
+                      border: 'none',
+                      cursor: isAutoFilling || !word.trim() ? 'not-allowed' : 'pointer',
+                      opacity: !word.trim() ? 0.6 : 1,
+                    }}
+                    title="Auto-fill definition, phonetics, and examples"
+                  >
+                    {isAutoFilling ? (
+                      <>
+                        <Loader2 size={12} className="animate-spin" />
+                        <span>Fetching...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 size={12} />
+                        <span>Auto-Fill ✨</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="word-input"
+                    ref={wordInputRef}
+                    type="text"
+                    required
+                    placeholder="Type a word, e.g. Ephemeral"
+                    className="form-input"
+                    value={word}
+                    onChange={(e) => setWord(e.target.value)}
+                    onBlur={() => {
+                      // If user enters word and meaning is empty, auto-trigger lookup
+                      if (word.trim().length >= 3 && !meaning.trim() && !isAutoFilling) {
+                        handleAutoFill(word);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAutoFill();
+                      }
+                    }}
+                  />
+                  {isAutoFilling && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.78rem',
+                        color: 'var(--primary)',
+                      }}
+                    >
+                      <Loader2 size={16} className="animate-spin" />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -283,7 +404,7 @@ export default function WordModal({
                 id="meaning-input"
                 required
                 rows={3}
-                placeholder="Explain what the word means with clarity..."
+                placeholder="Definition will automatically appear here once you type the word..."
                 className="form-textarea"
                 value={meaning}
                 onChange={(e) => setMeaning(e.target.value)}
@@ -298,7 +419,7 @@ export default function WordModal({
               <textarea
                 id="example-input"
                 rows={2}
-                placeholder="Use the word in a memorable sentence..."
+                placeholder="Example sentence with the word..."
                 className="form-textarea"
                 value={example}
                 onChange={(e) => setExample(e.target.value)}
@@ -376,14 +497,14 @@ export default function WordModal({
                 type="button"
                 onClick={onClose}
                 className="glass-btn"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isAutoFilling}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 className="glass-btn glass-btn-primary"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isAutoFilling}
               >
                 {isSubmitting ? (
                   <span>Saving...</span>

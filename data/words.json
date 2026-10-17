@@ -1,5 +1,23 @@
 [
   {
+    "word": "Eloquent",
+    "phonetic": "/ˈɛl.əˌkwənt/",
+    "partOfSpeech": "adjective",
+    "meaning": "Fluently persuasive and articulate",
+    "example": "Her eloquent approach brought fresh clarity to the discussion.",
+    "tags": [
+      "adjective",
+      "articulate",
+      "well-spoken",
+      "vocabulary"
+    ],
+    "mastered": false,
+    "difficulty": "medium",
+    "id": "word_1792232381093_z62z0",
+    "createdAt": "2026-10-17T10:19:41.093Z",
+    "updatedAt": "2026-10-17T10:19:41.093Z"
+  },
+  {
     "word": "Komorebi",
     "phonetic": "/ko-mo-re-bi/",
     "partOfSpeech": "noun",
