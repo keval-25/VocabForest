@@ -10,6 +10,8 @@ import WordModal from '@/components/WordModal';
 import Toast, { ToastMessage } from '@/components/Toast';
 import { WordItem, WordInput, PartOfSpeech } from '@/types/word';
 
+const STORAGE_KEY = 'vocabforest_words_v2';
+
 export default function Home() {
   const [words, setWords] = useState<WordItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,6 +19,7 @@ export default function Home() {
   const [selectedPos, setSelectedPos] = useState<string>('all');
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [isMongo, setIsMongo] = useState<boolean>(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,25 +42,84 @@ export default function Home() {
     }, 3200);
   }, []);
 
-  // Fetch words from backend local JSON DB
+  // Fetch words from backend + merge with resilient local cache
   const fetchWords = useCallback(async () => {
     try {
-      setLoading(true);
       const res = await fetch('/api/words', { cache: 'no-store' });
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        setWords(data.data);
+        let merged = data.data;
+
+        // Reconcile with local cache so newly added words are never wiped by serverless restarts
+        try {
+          const cached = localStorage.getItem(STORAGE_KEY);
+          if (cached) {
+            const localWords: WordItem[] = JSON.parse(cached);
+            if (Array.isArray(localWords) && localWords.length > 0) {
+              const serverIds = new Set(data.data.map((w: WordItem) => w.id));
+              const localOnly = localWords.filter((w) => !serverIds.has(w.id));
+              if (localOnly.length > 0) {
+                merged = [...data.data, ...localOnly];
+              }
+            }
+          }
+        } catch {
+          // ignore
+        }
+
+        setWords(merged);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+        } catch {
+          // ignore
+        }
       }
     } catch (err) {
-      console.error('Failed to load words:', err);
+      console.error('Failed to load words from server:', err);
+      try {
+        const cached = localStorage.getItem(STORAGE_KEY);
+        if (cached) {
+          const localWords = JSON.parse(cached);
+          if (Array.isArray(localWords) && localWords.length > 0) {
+            setWords(localWords);
+            return;
+          }
+        }
+      } catch {
+        // ignore
+      }
       showToast('Could not load vocabulary from database', 'error');
     } finally {
       setLoading(false);
     }
   }, [showToast]);
 
+  // Initial load: instant localStorage read + server fetch + check DB status
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setWords(parsed);
+          setLoading(false);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     fetchWords();
+
+    // Check DB status
+    fetch('/api/status', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data?.configured) {
+          setIsMongo(true);
+        }
+      })
+      .catch(() => {});
   }, [fetchWords]);
 
   // Keyboard shortcuts
@@ -106,7 +168,15 @@ export default function Home() {
         throw new Error(result.error || 'Failed to add word');
       }
 
-      setWords((prev) => [result.data, ...prev]);
+      setWords((prev) => {
+        const next = [result.data, ...prev.filter((w) => w.id !== result.data.id)];
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+        return next;
+      });
       showToast(`Added "${result.data.word}" to your lexicon`, 'success');
     } else if (modalMode === 'edit' && id) {
       const res = await fetch(`/api/words/${id}`, {
@@ -120,7 +190,15 @@ export default function Home() {
         throw new Error(result.error || 'Failed to update word');
       }
 
-      setWords((prev) => prev.map((w) => (w.id === id ? result.data : w)));
+      setWords((prev) => {
+        const next = prev.map((w) => (w.id === id ? result.data : w));
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+        return next;
+      });
       showToast(`Updated "${result.data.word}"`, 'success');
     }
   };
@@ -136,7 +214,15 @@ export default function Home() {
       throw new Error(result.error || 'Failed to delete word');
     }
 
-    setWords((prev) => prev.filter((w) => w.id !== id));
+    setWords((prev) => {
+      const next = prev.filter((w) => w.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
     showToast(`Removed "${wordToDelete?.word || 'Word'}"`, 'info');
   };
 
@@ -144,9 +230,15 @@ export default function Home() {
     e.stopPropagation();
     const updatedStatus = !item.mastered;
 
-    setWords((prev) =>
-      prev.map((w) => (w.id === item.id ? { ...w, mastered: updatedStatus } : w))
-    );
+    setWords((prev) => {
+      const next = prev.map((w) => (w.id === item.id ? { ...w, mastered: updatedStatus } : w));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
 
     try {
       const res = await fetch(`/api/words/${item.id}`, {
@@ -162,9 +254,15 @@ export default function Home() {
         'success'
       );
     } catch {
-      setWords((prev) =>
-        prev.map((w) => (w.id === item.id ? { ...w, mastered: !updatedStatus } : w))
-      );
+      setWords((prev) => {
+        const next = prev.map((w) => (w.id === item.id ? { ...w, mastered: !updatedStatus } : w));
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+        return next;
+      });
       showToast('Could not update status', 'error');
     }
   };
@@ -237,6 +335,7 @@ export default function Home() {
         totalWords={words.length}
         masteredWords={masteredCount}
         onOpenAddModal={openAddModal}
+        isMongo={isMongo}
       />
 
       <main className="main-content">
