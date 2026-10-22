@@ -7,15 +7,18 @@ interface HeaderProps {
   totalWords: number;
   masteredWords: number;
   onOpenAddModal: () => void;
-  isMongo?: boolean;
+  cloudProvider?: 'vercel-blob' | 'mongodb' | 'local-json';
 }
 
 export default function Header({
   totalWords,
   masteredWords,
   onOpenAddModal,
-  isMongo = false,
+  cloudProvider = 'local-json',
 }: HeaderProps) {
+  const isCloudActive = cloudProvider === 'vercel-blob' || cloudProvider === 'mongodb';
+  const cloudLabel = cloudProvider === 'vercel-blob' ? 'Vercel Cloud' : 'Cloud DB';
+
   return (
     <header className="app-header">
       <div className="header-bar">
@@ -27,7 +30,7 @@ export default function Header({
           <div className="logo-text-wrapper">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <h1 className="logo-title">VocabForest</h1>
-              {isMongo && (
+              {isCloudActive && (
                 <span
                   style={{
                     display: 'inline-flex',
@@ -41,7 +44,11 @@ export default function Header({
                     fontWeight: 600,
                     border: '1px solid #d3e7d7',
                   }}
-                  title="Connected to MongoDB Cloud Database"
+                  title={
+                    cloudProvider === 'vercel-blob'
+                      ? 'Connected to Vercel Blob Cloud Storage (synced across all devices)'
+                      : 'Connected to MongoDB Cloud Database (synced across all devices)'
+                  }
                 >
                   <span
                     style={{
@@ -51,7 +58,7 @@ export default function Header({
                       backgroundColor: '#2f8544',
                     }}
                   />
-                  Cloud DB
+                  {cloudLabel}
                 </span>
               )}
             </div>

@@ -19,7 +19,7 @@ export default function Home() {
   const [selectedPos, setSelectedPos] = useState<string>('all');
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
-  const [isMongo, setIsMongo] = useState<boolean>(false);
+  const [cloudProvider, setCloudProvider] = useState<'vercel-blob' | 'mongodb' | 'local-json'>('local-json');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -115,8 +115,8 @@ export default function Home() {
     fetch('/api/status', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.data?.configured) {
-          setIsMongo(true);
+        if (data.success && data.data?.provider) {
+          setCloudProvider(data.data.provider);
         }
       })
       .catch(() => {});
@@ -335,7 +335,7 @@ export default function Home() {
         totalWords={words.length}
         masteredWords={masteredCount}
         onOpenAddModal={openAddModal}
-        isMongo={isMongo}
+        cloudProvider={cloudProvider}
       />
 
       <main className="main-content">

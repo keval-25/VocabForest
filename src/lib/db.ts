@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { WordItem } from '@/types/word';
 import { getMongoWordsCollection, isMongoConfigured } from './mongodb';
+import { isBlobConfigured, getWordsFromBlob, saveWordsToBlob } from './blob';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'words.json');
@@ -127,10 +128,31 @@ async function saveWordsLocally(words: WordItem[]): Promise<void> {
 
 /**
  * Fetch all words:
- * Priority 1: MongoDB (permanent across Vercel deployments, reloads, and devices)
- * Priority 2: Local filesystem / memory cache fallback
+ * Priority 1: Vercel Blob (Cross-device shared cloud JSON storage)
+ * Priority 2: MongoDB (if MONGODB_URI configured)
+ * Priority 3: Local filesystem / memory cache fallback
  */
 export async function getWords(): Promise<WordItem[]> {
+  // 1. Vercel Blob Cloud Storage
+  if (isBlobConfigured()) {
+    try {
+      const blobWords = await getWordsFromBlob();
+      if (blobWords && Array.isArray(blobWords) && blobWords.length > 0) {
+        memoryWordsCache = blobWords;
+        return blobWords;
+      } else {
+        // Blob exists or empty: Seed it with current local words
+        const seed = readLocalSeedWords();
+        await saveWordsToBlob(seed);
+        memoryWordsCache = seed;
+        return seed;
+      }
+    } catch (blobErr) {
+      console.error('Vercel Blob getWords error, falling back:', blobErr);
+    }
+  }
+
+  // 2. MongoDB Cloud Database
   if (isMongoConfigured()) {
     try {
       const collection = await getMongoWordsCollection();
@@ -175,7 +197,7 @@ export async function getWords(): Promise<WordItem[]> {
 
 /**
  * Add a new word:
- * Saves to MongoDB (if configured) and synchronizes with local storage.
+ * Saves to Vercel Blob (if configured), MongoDB (if configured), and local storage.
  */
 export async function addWord(
   data: Omit<WordItem, 'id' | 'createdAt' | 'updatedAt'>
@@ -188,6 +210,21 @@ export async function addWord(
     updatedAt: now,
   };
 
+  // 1. Vercel Blob Cloud Storage
+  if (isBlobConfigured()) {
+    try {
+      const currentBlob = (await getWordsFromBlob()) || (await getWordsFallback());
+      const updated = [newWord, ...currentBlob.filter((w) => w.id !== newWord.id)];
+      await saveWordsToBlob(updated);
+      memoryWordsCache = updated;
+      await saveWordsLocally(updated);
+      return newWord;
+    } catch (blobErr) {
+      console.error('Vercel Blob addWord error:', blobErr);
+    }
+  }
+
+  // 2. MongoDB Cloud Database
   if (isMongoConfigured()) {
     try {
       const collection = await getMongoWordsCollection();
@@ -219,6 +256,29 @@ export async function updateWord(
 ): Promise<WordItem | null> {
   const updatedAt = new Date().toISOString();
 
+  // 1. Vercel Blob
+  if (isBlobConfigured()) {
+    try {
+      const currentBlob = (await getWordsFromBlob()) || (await getWordsFallback());
+      const index = currentBlob.findIndex((w) => w.id === id);
+      if (index !== -1) {
+        const updatedWord: WordItem = {
+          ...currentBlob[index],
+          ...updates,
+          updatedAt,
+        };
+        currentBlob[index] = updatedWord;
+        await saveWordsToBlob(currentBlob);
+        memoryWordsCache = currentBlob;
+        await saveWordsLocally(currentBlob);
+        return updatedWord;
+      }
+    } catch (blobErr) {
+      console.error('Vercel Blob updateWord error:', blobErr);
+    }
+  }
+
+  // 2. MongoDB
   if (isMongoConfigured()) {
     try {
       const collection = await getMongoWordsCollection();
@@ -273,8 +333,22 @@ export async function updateWord(
  * Delete a word
  */
 export async function deleteWord(id: string): Promise<boolean> {
-  let deletedFromMongo = false;
+  // 1. Vercel Blob
+  if (isBlobConfigured()) {
+    try {
+      const currentBlob = (await getWordsFromBlob()) || (await getWordsFallback());
+      const filtered = currentBlob.filter((w) => w.id !== id);
+      await saveWordsToBlob(filtered);
+      memoryWordsCache = filtered;
+      await saveWordsLocally(filtered);
+      return true;
+    } catch (blobErr) {
+      console.error('Vercel Blob deleteWord error:', blobErr);
+    }
+  }
 
+  // 2. MongoDB
+  let deletedFromMongo = false;
   if (isMongoConfigured()) {
     try {
       const collection = await getMongoWordsCollection();
@@ -301,11 +375,17 @@ export async function deleteWord(id: string): Promise<boolean> {
 }
 
 /**
- * Utility to check database health and provider
+ * Check database health and provider type
  */
-export async function getDbStatus(): Promise<{ provider: 'mongodb' | 'local-json'; configured: boolean }> {
-  return {
-    provider: isMongoConfigured() ? 'mongodb' : 'local-json',
-    configured: isMongoConfigured(),
-  };
+export async function getDbStatus(): Promise<{
+  provider: 'vercel-blob' | 'mongodb' | 'local-json';
+  configured: boolean;
+}> {
+  if (isBlobConfigured()) {
+    return { provider: 'vercel-blob', configured: true };
+  }
+  if (isMongoConfigured()) {
+    return { provider: 'mongodb', configured: true };
+  }
+  return { provider: 'local-json', configured: false };
 }
