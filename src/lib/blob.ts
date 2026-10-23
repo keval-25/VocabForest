@@ -68,7 +68,8 @@ export async function saveWordsToBlob(words: WordItem[]): Promise<boolean> {
     await put(BLOB_PATH, jsonString, {
       access: 'public',
       addRandomSuffix: false, // Ensures static pathname 'vocabforest/words.json'
-      cacheControlMaxAge: 0,   // Prevent CDN caching
+      allowOverwrite: true,   // Permits updating the existing cloud words.json
+      cacheControlMaxAge: 0,  // Prevent CDN caching
     });
     return true;
   } catch (error) {
