@@ -3,11 +3,15 @@ import { WordItem } from '@/types/word';
 
 const BLOB_PATH = 'vocabforest/words.json';
 
+/**
+ * Checks whether Vercel Blob is configured.
+ * Modern Vercel provisions BLOB_STORE_ID (authenticated via Vercel OIDC).
+ * Legacy or manual setups provision BLOB_READ_WRITE_TOKEN.
+ */
 export function isBlobConfigured(): boolean {
-  return Boolean(
-    process.env.BLOB_READ_WRITE_TOKEN &&
-    process.env.BLOB_READ_WRITE_TOKEN.trim().length > 0
-  );
+  const hasStoreId = Boolean(process.env.BLOB_STORE_ID && process.env.BLOB_STORE_ID.trim().length > 0);
+  const hasToken = Boolean(process.env.BLOB_READ_WRITE_TOKEN && process.env.BLOB_READ_WRITE_TOKEN.trim().length > 0);
+  return hasStoreId || hasToken;
 }
 
 /**
@@ -17,15 +21,24 @@ export async function getWordsFromBlob(): Promise<WordItem[] | null> {
   if (!isBlobConfigured()) return null;
 
   try {
-    const { blobs } = await list({ prefix: BLOB_PATH, limit: 1 });
+    const { blobs } = await list({ prefix: BLOB_PATH, limit: 10 });
     if (!blobs || blobs.length === 0) {
       return null;
     }
 
     const targetBlob = blobs.find((b) => b.pathname === BLOB_PATH) || blobs[0];
-    const response = await fetch(targetBlob.url, {
+    
+    // Add timestamp cache-buster so CDN never serves stale cached JSON
+    const cacheBusterUrl = targetBlob.url.includes('?') 
+      ? `${targetBlob.url}&_cb=${Date.now()}`
+      : `${targetBlob.url}?_cb=${Date.now()}`;
+
+    const response = await fetch(cacheBusterUrl, {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      },
     });
 
     if (!response.ok) {
@@ -54,7 +67,8 @@ export async function saveWordsToBlob(words: WordItem[]): Promise<boolean> {
     const jsonString = JSON.stringify(words, null, 2);
     await put(BLOB_PATH, jsonString, {
       access: 'public',
-      addRandomSuffix: false, // Keeps persistent static file path
+      addRandomSuffix: false, // Ensures static pathname 'vocabforest/words.json'
+      cacheControlMaxAge: 0,   // Prevent CDN caching
     });
     return true;
   } catch (error) {
