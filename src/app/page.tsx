@@ -42,58 +42,22 @@ export default function Home() {
     }, 3200);
   }, []);
 
-  // Fetch words from backend + merge with resilient local cache
+  // Fetch words from backend (Cloud is authoritative across all devices)
   const fetchWords = useCallback(async () => {
     try {
       const res = await fetch(`/api/words?_t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        let merged = data.data;
-
-        // Reconcile with local cache so newly added words are never wiped by serverless restarts
+        setWords(data.data);
         try {
-          const cached = localStorage.getItem(STORAGE_KEY);
-          if (cached) {
-            const localWords: WordItem[] = JSON.parse(cached);
-            if (Array.isArray(localWords) && localWords.length > 0) {
-              const serverIds = new Set(data.data.map((w: WordItem) => w.id));
-              const localOnly = localWords.filter((w) => !serverIds.has(w.id));
-              if (localOnly.length > 0) {
-                merged = [...data.data, ...localOnly];
-
-                // Auto-sync words present locally to the cloud so all other devices see them
-                localOnly.forEach((unsynced) => {
-                  fetch('/api/words', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      word: unsynced.word,
-                      phonetic: unsynced.phonetic,
-                      partOfSpeech: unsynced.partOfSpeech,
-                      meaning: unsynced.meaning,
-                      example: unsynced.example,
-                      tags: unsynced.tags,
-                      mastered: unsynced.mastered,
-                      difficulty: unsynced.difficulty,
-                    }),
-                  }).catch((err) => console.warn('Cloud sync error for:', unsynced.word, err));
-                });
-              }
-            }
-          }
-        } catch {
-          // ignore
-        }
-
-        setWords(merged);
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data.data));
         } catch {
           // ignore
         }
       }
     } catch (err) {
       console.error('Failed to load words from server:', err);
+      // Offline fallback: load from device cache if server unreachable
       try {
         const cached = localStorage.getItem(STORAGE_KEY);
         if (cached) {
@@ -138,6 +102,22 @@ export default function Home() {
         }
       })
       .catch(() => {});
+  }, [fetchWords]);
+
+  // Auto-sync when user returns or focuses the app tab (e.g. switching back on iPhone)
+  useEffect(() => {
+    const handleSync = () => {
+      if (document.visibilityState === 'visible') {
+        fetchWords();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleSync);
+    window.addEventListener('focus', handleSync);
+    return () => {
+      window.removeEventListener('visibilitychange', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
   }, [fetchWords]);
 
   // Keyboard shortcuts
