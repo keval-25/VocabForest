@@ -16,7 +16,7 @@ function readLocalSeedWords(): WordItem[] {
     if (fs.existsSync(DATA_FILE)) {
       const content = fs.readFileSync(DATA_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
@@ -24,34 +24,7 @@ function readLocalSeedWords(): WordItem[] {
     console.warn('Could not read local seed words from DATA_FILE:', err);
   }
 
-  return [
-    {
-      id: "word_1",
-      word: "Serendipity",
-      phonetic: "/ˌser.ənˈdɪp.ə.ti/",
-      partOfSpeech: "noun",
-      meaning: "The occurrence and development of events by chance in a happy, beneficial, or unexpectedly delightful way.",
-      example: "Finding that vintage bookstore tucked away in the foggy alley was pure serendipity.",
-      tags: ["delight", "destiny", "daily"],
-      mastered: false,
-      difficulty: "medium",
-      createdAt: "2026-10-17T09:00:00.000Z",
-      updatedAt: "2026-10-17T09:00:00.000Z"
-    },
-    {
-      id: "word_2",
-      word: "Petrichor",
-      phonetic: "/ˈpet.rɪ.kɔːr/",
-      partOfSpeech: "noun",
-      meaning: "The pleasant, earthy scent produced when rain falls on dry soil after a long period of warm weather.",
-      example: "She opened the glass balcony doors and inhaled the soothing petrichor of the afternoon drizzle.",
-      tags: ["nature", "sensory", "rare"],
-      mastered: true,
-      difficulty: "hard",
-      createdAt: "2026-10-17T09:10:00.000Z",
-      updatedAt: "2026-10-17T09:10:00.000Z"
-    }
-  ];
+  return [];
 }
 
 function ensureLocalFileExists(): void {
@@ -137,13 +110,16 @@ export async function getWords(): Promise<WordItem[]> {
   if (isBlobConfigured()) {
     try {
       const blobWords = await getWordsFromBlob();
-      if (blobWords && Array.isArray(blobWords) && blobWords.length > 0) {
+      // If blobWords is an array (even empty []), return it directly! NEVER reseed if user deleted words.
+      if (blobWords !== null && Array.isArray(blobWords)) {
         memoryWordsCache = blobWords;
         return blobWords;
       } else {
-        // Blob exists or empty: Seed it with current local words
+        // Blob store not yet initialized: Seed it with local words only if any exist
         const seed = readLocalSeedWords();
-        await saveWordsToBlob(seed);
+        if (seed.length > 0) {
+          await saveWordsToBlob(seed);
+        }
         memoryWordsCache = seed;
         return seed;
       }
@@ -176,15 +152,6 @@ export async function getWords(): Promise<WordItem[]> {
           }));
           memoryWordsCache = words;
           return words;
-        } else {
-          // MongoDB collection is empty: Seed it with local words
-          const seed = readLocalSeedWords();
-          if (seed.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await collection.insertMany(seed as any);
-            memoryWordsCache = seed;
-            return seed;
-          }
         }
       }
     } catch (mongoErr) {
@@ -213,8 +180,13 @@ export async function addWord(
   // 1. Vercel Blob Cloud Storage
   if (isBlobConfigured()) {
     try {
-      const currentBlob = (await getWordsFromBlob()) || (await getWordsFallback());
-      const updated = [newWord, ...currentBlob.filter((w) => w.id !== newWord.id)];
+      const currentBlob = (await getWordsFromBlob()) || [];
+      const updated = [
+        newWord,
+        ...currentBlob.filter(
+          (w) => w.id !== newWord.id && w.word.toLowerCase() !== newWord.word.toLowerCase()
+        ),
+      ];
       await saveWordsToBlob(updated);
       memoryWordsCache = updated;
       await saveWordsLocally(updated);
@@ -259,8 +231,10 @@ export async function updateWord(
   // 1. Vercel Blob
   if (isBlobConfigured()) {
     try {
-      const currentBlob = (await getWordsFromBlob()) || (await getWordsFallback());
-      const index = currentBlob.findIndex((w) => w.id === id);
+      const currentBlob = (await getWordsFromBlob()) || [];
+      const index = currentBlob.findIndex(
+        (w) => w.id === id || w.word.toLowerCase() === id.toLowerCase()
+      );
       if (index !== -1) {
         const updatedWord: WordItem = {
           ...currentBlob[index],
@@ -284,7 +258,7 @@ export async function updateWord(
       const collection = await getMongoWordsCollection();
       if (collection) {
         const result = await collection.findOneAndUpdate(
-          { id },
+          { $or: [{ id }, { word: { $regex: new RegExp(`^${id}$`, 'i') } }] },
           { $set: { ...updates, updatedAt } },
           { returnDocument: 'after' }
         );
@@ -316,7 +290,7 @@ export async function updateWord(
   }
 
   const words = await getWordsFallback();
-  const index = words.findIndex((w) => w.id === id);
+  const index = words.findIndex((w) => w.id === id || w.word.toLowerCase() === id.toLowerCase());
   if (index === -1) return null;
 
   const updatedWord: WordItem = {
@@ -333,30 +307,42 @@ export async function updateWord(
  * Delete a word
  */
 export async function deleteWord(id: string): Promise<boolean> {
+  let deleted = false;
+
   // 1. Vercel Blob
   if (isBlobConfigured()) {
     try {
-      const currentBlob = (await getWordsFromBlob()) || (await getWordsFallback());
-      const filtered = currentBlob.filter((w) => w.id !== id);
+      const currentBlob = (await getWordsFromBlob()) || [];
+      const filtered = currentBlob.filter(
+        (w) => w.id !== id && w.word.toLowerCase() !== id.toLowerCase()
+      );
+      if (filtered.length !== currentBlob.length) {
+        deleted = true;
+      }
       await saveWordsToBlob(filtered);
       memoryWordsCache = filtered;
       await saveWordsLocally(filtered);
-      return true;
+      if (deleted) return true;
     } catch (blobErr) {
       console.error('Vercel Blob deleteWord error:', blobErr);
     }
   }
 
   // 2. MongoDB
-  let deletedFromMongo = false;
   if (isMongoConfigured()) {
     try {
       const collection = await getMongoWordsCollection();
       if (collection) {
-        const res = await collection.deleteOne({ id });
-        deletedFromMongo = res.deletedCount > 0;
-        if (memoryWordsCache) {
-          memoryWordsCache = memoryWordsCache.filter((w) => w.id !== id);
+        const res = await collection.deleteMany({
+          $or: [{ id }, { word: { $regex: new RegExp(`^${id}$`, 'i') } }],
+        });
+        if ((res.deletedCount || 0) > 0) {
+          deleted = true;
+          if (memoryWordsCache) {
+            memoryWordsCache = memoryWordsCache.filter(
+              (w) => w.id !== id && w.word.toLowerCase() !== id.toLowerCase()
+            );
+          }
         }
       }
     } catch (mongoErr) {
@@ -365,13 +351,15 @@ export async function deleteWord(id: string): Promise<boolean> {
   }
 
   const words = await getWordsFallback();
-  const filtered = words.filter((w) => w.id !== id);
+  const filtered = words.filter(
+    (w) => w.id !== id && w.word.toLowerCase() !== id.toLowerCase()
+  );
   if (filtered.length !== words.length) {
     await saveWordsLocally(filtered);
     return true;
   }
 
-  return deletedFromMongo;
+  return deleted;
 }
 
 /**

@@ -1,7 +1,7 @@
-import { put, list } from '@vercel/blob';
+import { put, list, del } from '@vercel/blob';
 import { WordItem } from '@/types/word';
 
-const BLOB_PATH = 'vocabforest/words.json';
+const BLOB_PREFIX = 'vocabforest/words_';
 
 /**
  * Checks whether Vercel Blob is configured.
@@ -15,29 +15,29 @@ export function isBlobConfigured(): boolean {
 }
 
 /**
- * Fetch words from Vercel Blob cloud storage
+ * Fetch words from Vercel Blob cloud storage.
+ * Reads the latest versioned blob so CDN edge cache can NEVER serve stale data.
  */
 export async function getWordsFromBlob(): Promise<WordItem[] | null> {
   if (!isBlobConfigured()) return null;
 
   try {
-    const { blobs } = await list({ prefix: BLOB_PATH, limit: 10 });
+    const { blobs } = await list({ prefix: 'vocabforest/' });
     if (!blobs || blobs.length === 0) {
       return null;
     }
 
-    const targetBlob = blobs.find((b) => b.pathname === BLOB_PATH) || blobs[0];
-    
-    // Add timestamp cache-buster so CDN never serves stale cached JSON
-    const cacheBusterUrl = targetBlob.url.includes('?') 
-      ? `${targetBlob.url}&_cb=${Date.now()}`
-      : `${targetBlob.url}?_cb=${Date.now()}`;
+    // Sort newest first:
+    const sorted = [...blobs].sort(
+      (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+    );
+    const targetBlob = sorted[0];
 
-    const response = await fetch(cacheBusterUrl, {
+    const response = await fetch(targetBlob.url, {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
+        Pragma: 'no-cache',
       },
     });
 
@@ -58,19 +58,36 @@ export async function getWordsFromBlob(): Promise<WordItem[] | null> {
 }
 
 /**
- * Persist words JSON file to Vercel Blob cloud storage
+ * Persist words JSON file to Vercel Blob cloud storage.
+ * Creates a unique timestamped file version so every write yields a fresh URL
+ * that completely bypasses Vercel/Cloudflare CDN edge cache.
+ * Cleans up older blobs so storage remains compact.
  */
 export async function saveWordsToBlob(words: WordItem[]): Promise<boolean> {
   if (!isBlobConfigured()) return false;
 
   try {
+    const newPath = `${BLOB_PREFIX}${Date.now()}_${Math.random().toString(36).substring(2, 7)}.json`;
     const jsonString = JSON.stringify(words, null, 2);
-    await put(BLOB_PATH, jsonString, {
+
+    await put(newPath, jsonString, {
       access: 'public',
-      addRandomSuffix: false, // Ensures static pathname 'vocabforest/words.json'
-      allowOverwrite: true,   // Permits updating the existing cloud words.json
-      cacheControlMaxAge: 0,  // Prevent CDN caching
+      addRandomSuffix: false,
+      contentType: 'application/json',
+      cacheControlMaxAge: 60,
     });
+
+    // Clean up older blobs asynchronously
+    try {
+      const { blobs } = await list({ prefix: 'vocabforest/' });
+      const oldBlobs = blobs.filter((b) => b.pathname !== newPath);
+      if (oldBlobs.length > 0) {
+        await del(oldBlobs.map((b) => b.url));
+      }
+    } catch (cleanupErr) {
+      console.warn('Non-fatal: Error cleaning up older blobs:', cleanupErr);
+    }
+
     return true;
   } catch (error) {
     console.error('Error saving words to Vercel Blob:', error);
